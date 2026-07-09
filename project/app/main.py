@@ -12,9 +12,7 @@ from app.schemas.user import user
 
 from app.api.items import router as items_router
 
-from app.database import Base, engine
 
-Base.metadata.create_all(bind=engine)
 
 settings = get_settings()
 
