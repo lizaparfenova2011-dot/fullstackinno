@@ -6,6 +6,7 @@ from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserLogin, UserResponse
 from app.services.auth_service import AuthService
 from app.services.user_service import UserService
+from app.auth import get_current_user
 
 router = APIRouter(
     prefix="/auth",

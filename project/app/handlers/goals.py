@@ -6,6 +6,8 @@ from app.schemas.goals import (
     DeleteByPeriodRequest, ToggleCompletedResponse, TogglePinnedResponse
 )
 from app.services.goals_service import GoalService
+from app.services.badge_service import BadgeService
+from app.auth import get_current_user
 
 router = APIRouter(prefix="/goals", tags=["goals"])
 
@@ -18,10 +20,10 @@ def get_goal_service(db: Session = Depends(get_db)) -> GoalService:
 @router.post("/", response_model=GoalResponse, status_code=status.HTTP_201_CREATED)
 def create_goal(
     schema: GoalCreate,
+    current_user: User = Depends(get_current_user),
     service: GoalService = Depends(get_goal_service),
-    user_id: int = Depends(get_current_user_id)
 ):
-    return service.create_goal(user_id, schema)
+    return service.create_goal(current_user.id, schema)
 
 @router.get("/", response_model=list[GoalResponse])
 def get_goals(
@@ -77,15 +79,20 @@ def delete_goals_by_period(
 @router.patch("/{goal_id}/toggle-completed", response_model=ToggleCompletedResponse)
 def toggle_completed(
     goal_id: int,
-    service: GoalService = Depends(get_goal_service),
-    user_id: int = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    goal = service.toggle_completed(user_id, goal_id)
+    service = GoalService(db)
+    goal = service.toggle_completed(current_user.id, goal_id)
+    # Проверка наград
+    badge_service = BadgeService(db)
+    badge_service.check_and_award_badges(current_user.id)
     return ToggleCompletedResponse(
         goal_id=goal.id,
         is_completed=goal.is_completed,
         message="Goal marked as completed" if goal.is_completed else "Goal marked as not completed"
     )
+
 
 @router.patch("/{goal_id}/toggle-pinned", response_model=TogglePinnedResponse)
 def toggle_pinned(

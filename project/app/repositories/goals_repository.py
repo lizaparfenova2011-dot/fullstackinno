@@ -14,8 +14,8 @@ class GoalsRepository:
 
     def create(self, goal: Goal) -> Goal:
         self.db.add(goal)
-        self.db.commit()
-        self.db.refresh(goal)
+        self.db.commit()      # обязательно
+        self.db.refresh(goal) # чтобы получить id из базы
         return goal
 
     def update(self, goal: Goal) -> Goal:

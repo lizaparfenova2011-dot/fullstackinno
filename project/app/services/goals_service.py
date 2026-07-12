@@ -19,6 +19,7 @@ class GoalService:
             raise HTTPException(status_code=404, detail="Goal not found")
         return goal
 
+
     def create_goal(self, user_id: int, schema: GoalCreate) -> Goal:
         goal = Goal(
             user_id=user_id,
@@ -26,9 +27,10 @@ class GoalService:
             period=schema.period,
             is_pinned=schema.is_pinned,
             created_at=date.today(),
-            is_completed=False
+            is_completed=False,
+            parent_goal_id=schema.parent_goal_id,
         )
-        return goal
+        return self.repository.create(goal)
 
     def update_goal(self, user_id: int, goal_id: int, schema: GoalUpdate) -> Goal:
         goal = self.get_goal(goal_id)
