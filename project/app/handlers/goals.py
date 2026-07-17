@@ -11,9 +11,6 @@ from app.auth import get_current_user
 
 router = APIRouter(prefix="/goals", tags=["goals"])
 
-def get_current_user_id() -> int:
-    return 1
-
 def get_goal_service(db: Session = Depends(get_db)) -> GoalService:
     return GoalService(db)
 
@@ -28,18 +25,18 @@ def create_goal(
 @router.get("/", response_model=list[GoalResponse])
 def get_goals(
     service: GoalService = Depends(get_goal_service),
-    user_id: int = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user),
 ):
-    return service.list_goals(user_id)
+    return service.list_goals(current_user.id)
 
 @router.get("/{goal_id}", response_model=GoalResponse)
 def get_goal(
     goal_id: int,
     service: GoalService = Depends(get_goal_service),
-    user_id: int = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user),
 ):
     goal = service.get_goal(goal_id)
-    if goal.user_id != user_id:
+    if goal.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your goal")
     return goal
 
@@ -48,33 +45,33 @@ def update_goal(
     goal_id: int,
     schema: GoalUpdate,
     service: GoalService = Depends(get_goal_service),
-    user_id: int = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user),
 ):
-    return service.update_goal(user_id, goal_id, schema)
+    return service.update_goal(current_user.id, goal_id, schema)
 
 @router.delete("/{goal_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_goal(
     goal_id: int,
     service: GoalService = Depends(get_goal_service),
-    user_id: int = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user),
 ):
-    service.delete_goal(user_id, goal_id)
+    service.delete_goal(current_user.id, goal_id)
 
 @router.get("/period/{period}", response_model=list[GoalResponse])
 def get_goals_by_period(
     period: str,
     service: GoalService = Depends(get_goal_service),
-    user_id: int = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user),
 ):
-    return service.list_goals_by_period(user_id, period)
+    return service.list_goals_by_period(current_user.id, period)
 
 @router.delete("/period/{period}", response_model=dict)
 def delete_goals_by_period(
     period: str,
     service: GoalService = Depends(get_goal_service),
-    user_id: int = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user),
 ):
-    return service.delete_goals_by_period(user_id, period)
+    return service.delete_goals_by_period(current_user.id, period)
 
 @router.patch("/{goal_id}/toggle-completed", response_model=ToggleCompletedResponse)
 def toggle_completed(
@@ -98,9 +95,9 @@ def toggle_completed(
 def toggle_pinned(
     goal_id: int,
     service: GoalService = Depends(get_goal_service),
-    user_id: int = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user),
 ):
-    goal = service.toggle_pinned(user_id, goal_id)
+    goal = service.toggle_pinned(current_user.id, goal_id)
     return TogglePinnedResponse(
         goal_id=goal.id,
         is_pinned=goal.is_pinned,

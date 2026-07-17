@@ -18,7 +18,7 @@ def get_profile(
 @router.patch("/", response_model=ProfileResponse)
 def update_profile(
     profile_data: ProfileUpdate,
-    current_user = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     service = UserService(db)

@@ -3,20 +3,21 @@ from api_client import api_request
 
 def render_day_tab():
     st.subheader("Цели на день")
-    # Живой таймер до 00:00 (JavaScript)
+    theme = st.session_state.user.get("theme", "system") if st.session_state.user else "system"
+    timer_color = "#FFFFFF" if theme == "dark" else "#000000"
     st.components.v1.html(
-        """
-        <div id="day-timer" style="font-size:16px; margin-bottom:12px;"></div>
+        f"""
+        <div id="day-timer" style="font-size:16px; margin-bottom:12px; color: {timer_color};"></div>
         <script>
-        function updateDayTimer() {
+        function updateDayTimer() {{
             const now = new Date();
             const midnight = new Date(now);
             midnight.setHours(24, 0, 0, 0);
             const diff = midnight - now;
-            if (diff <= 0) {
+            if (diff <= 0) {{
                 document.getElementById("day-timer").innerHTML = "Время истекло!";
                 return;
-            }
+            }}
             const hours = Math.floor(diff / 3600000);
             const minutes = Math.floor((diff % 3600000) / 60000);
             const seconds = Math.floor((diff % 60000) / 1000);
@@ -25,7 +26,7 @@ def render_day_tab():
                 String(hours).padStart(2,'0') + ":" +
                 String(minutes).padStart(2,'0') + ":" +
                 String(seconds).padStart(2,'0') + "</b>";
-        }
+        }}
         updateDayTimer();
         setInterval(updateDayTimer, 1000);
         </script>
@@ -35,7 +36,6 @@ def render_day_tab():
 
     goals = api_request("GET", "/goals/period/day") or []
 
-    # закреплённые выше
     goals.sort(key=lambda g: not g.get("is_pinned", False))
 
     filter_option = st.radio("Показать:", ["Все", "Активные", "Завершённые"], horizontal=True, key="day_filter")
@@ -47,6 +47,24 @@ def render_day_tab():
 
     for goal in filtered_goals:
         pinned = goal.get("is_pinned", False)
+    # --- начало нового блока ---
+        theme = st.session_state.user.get("theme", "system") if st.session_state.user else "system"
+        if pinned:
+            if theme == "dark":
+                pin_bg = "#660099"
+                pin_color = "#FFFFFF"
+            elif theme == "forest":
+                pin_bg = "#4A7C59"
+                pin_color = "#FFFFFF"
+            elif theme == "ocean":
+                pin_bg = "#ADD8E6"   # light blue – хорошо виден на light cyan
+                pin_color = "#000000"
+            elif theme == "sunset":
+                pin_bg = "#FF00FF"   # оранжевый, гармонирует с панелью
+                pin_color = "#000000"
+            else:
+                pin_bg = "#FFB300"
+                pin_color = "#000000"
         with st.container():
             col1, col2, col3 = st.columns([0.5, 4.5, 2])
             with col1:
@@ -58,7 +76,7 @@ def render_day_tab():
             with col2:
                 if pinned:
                     st.markdown(
-                        f"<span style='background-color: #e0e0e0; padding: 2px 8px; border-radius: 4px;'><b>{goal['name']}</b></span>",
+                        f"<span style='background-color: {pin_bg}; color: {pin_color}; padding: 0px 4px; border-radius: 3px;'><b>{goal['name']}</b></span>",
                         unsafe_allow_html=True
                     )
                 else:

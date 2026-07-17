@@ -31,32 +31,20 @@ def create_access_token(user_id: int) -> str:
         minutes=settings.access_token_expire_minutes,
     )
     payload = {
-        "sub": str(user_id),
+        "sub": str(user_id),  # ← тут хранится ID пользователя
         "exp": expires_at,
     }
-
-    return jwt.encode(
-        payload,
-        settings.secret_key,
-        algorithm=settings.algorithm,
-    )
+    return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
 
 def decode_access_token(token: str) -> TokenData:
     settings = get_settings()
-
     try:
-        payload = jwt.decode(
-            token,
-            settings.secret_key,
-            algorithms=[settings.algorithm],
-        )
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         subject = payload.get("sub")
-
         if subject is None:
             raise _credentials_error()
-
-        return TokenData(user_id=int(subject))
+        return TokenData(user_id=int(subject))  # ← конвертируем в int
     except (JWTError, ValueError) as exc:
         raise _credentials_error() from exc
 

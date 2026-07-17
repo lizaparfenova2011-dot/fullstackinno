@@ -22,6 +22,8 @@ from app.handlers.badges import router as badges_router
 from app.models.goal import Goal
 from app.models.user import User
 from fastapi.middleware.cors import CORSMiddleware
+from app.models.badge import Badge, UserBadge
+from app.models.user_counter import UserCounter
 
 settings = get_settings()
 app = FastAPI(
@@ -45,31 +47,31 @@ from app.models.badge import Badge
 def seed_badges():
     db = SessionLocal()
     try:
-        if db.query(Badge).count() == 0:
-            predefined = [
-                {"name": "Деревянная монетка", "description": "Начинающий пользователь", "condition_type": "period_count", "condition_params": {"period": "day", "count": 15}},
-                {"name": "Алюминиевая монетка", "description": "Труженник", "condition_type": "period_count", "condition_params": {"period": "week", "count": 5}},
-                {"name": "Бронзовая", "description": "Упорный", "condition_type": "period_count", "condition_params": {"period": "week", "count": 15}},
-                {"name": "Аметистовая", "description": "Труд его боялся", "condition_type": "period_count", "condition_params": {"period": "month", "count": 10}},
-                {"name": "Серебрянная", "description": "Суперумница", "condition_type": "period_count", "condition_params": {"period": "month", "count": 15}},
-                {"name": "Изумрудная", "description": "Целеустремлённый", "condition_type": "period_count", "condition_params": {"period": "month", "count": 30}},
-                {"name": "Сапфировая", "description": "Молодчина", "condition_type": "period_count", "condition_params": {"period": "month", "count": 50}},
-                {"name": "Розовый кварц", "description": "Трудоголик", "condition_type": "period_count", "condition_params": {"period": "year", "count": 5}},
-                {"name": "Рубиновая", "description": "Трудолюбивчик", "condition_type": "period_count", "condition_params": {"period": "year", "count": 25}},
-                {"name": "Золотая", "description": "Работяга", "condition_type": "period_count", "condition_params": {"period": "year", "count": 50}},
-                {"name": "Алмазная", "description": "Неостанавливаемый", "condition_type": "period_count", "condition_params": {"period": "year", "count": 67}},
-                {"name": "Хрустальная", "description": "Великий трудяга", "condition_type": "period_count", "condition_params": {"period": "year", "count": 100}},
-            ]
-            for data in predefined:
-                badge = Badge(**data)
-                db.add(badge)
-            db.commit()
+        db.query(Badge).delete()
+        db.commit()
+
+        predefined = [
+            {"name": "Деревянная монетка", "description": "(Выполните 15 целей на день)  Начинающий пользователь", "condition_type": "period_count", "condition_params": {"period": "day", "count": 15}, "image_url": "wood.png"},
+            {"name": "Алюминиевая монетка", "description": "(Выполните 5 целей на неделю)  Труженник", "condition_type": "period_count", "condition_params": {"period": "week", "count": 5}, "image_url": "aluminium.png"},
+            {"name": "Бронзовая монетка", "description": "(Выполните 15 целей на неделю)  Упорный", "condition_type": "period_count", "condition_params": {"period": "week", "count": 15}, "image_url": "bronze.png"},
+            {"name": "Аметистовая монетка", "description": "(Выполните 10 целей на месяц)  Труд его боялся", "condition_type": "period_count", "condition_params": {"period": "month", "count": 10}, "image_url": "ametist.png"},
+            {"name": "Серебряная монетка", "description": "(Выполните 15 целей на месяц)  Суперумница", "condition_type": "period_count", "condition_params": {"period": "month", "count": 15}, "image_url": "serebro.png"},
+            {"name": "Изумрудная монетка", "description": "(Выполните 30 целей на месяц)  Целеустремлённый", "condition_type": "period_count", "condition_params": {"period": "month", "count": 30}, "image_url": "izumrud.png"},
+            {"name": "Сапфировая монетка", "description": "(Выполните 50 целей на месяц)  Молодчина", "condition_type": "period_count", "condition_params": {"period": "month", "count": 50}, "image_url": "sapfir.png"},
+            {"name": "Монетка из розового кварца", "description": "(Выполните 5 целей на год)  Трудоголик", "condition_type": "period_count", "condition_params": {"period": "year", "count": 5}, "image_url": "pink.png"},
+            {"name": "Рубиновая монетка", "description": "(Выполните 25 целей на год)  Трудолюбивчик", "condition_type": "period_count", "condition_params": {"period": "year", "count": 25}, "image_url": "rubin.png"},
+            {"name": "Золотая монетка", "description": "(Выполните 50 целей на год)  Работяга", "condition_type": "period_count", "condition_params": {"period": "year", "count": 50}, "image_url": "gold.png"},
+            {"name": "Алмазная монетка", "description": "(Выполните 67 целей на год)  Неостанавливаемый", "condition_type": "period_count", "condition_params": {"period": "year", "count": 67}, "image_url": "almaz.png"},
+            {"name": "Хрустальная монетка", "description": "(Выполните 100 целей на год)  Великий трудяга", "condition_type": "period_count", "condition_params": {"period": "year", "count": 100}, "image_url": "chrustal.png"},
+        ]
+        for data in predefined:
+            badge = Badge(**data)
+            db.add(badge)
+        db.commit()
     finally:
         db.close()
 
-# после create_all
 seed_badges()
-
 app.include_router(auth_router)
 app.include_router(goals_router)
 app.include_router(users_router)

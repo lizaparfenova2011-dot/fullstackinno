@@ -3,31 +3,34 @@ from api_client import api_request
 
 def render_month_tab():
     st.subheader("Цели на месяц")
-    # Живой таймер на 28 дней
+
+    theme = st.session_state.user.get("theme", "system") if st.session_state.user else "system"
+    timer_color = "#FFFFFF" if theme == "dark" else "#000000"
+
     st.components.v1.html(
-        """
-        <div id="month-timer" style="font-size:16px; margin-bottom:12px;"></div>
+        f"""
+        <div id="month-timer" style="font-size:16px; margin-bottom:12px; color: {timer_color};"></div>
         <script>
-        const monthEnd = new Date().getTime() + 28*24*60*60*1000;
-        function updateMonthTimer() {
+        function getFirstOfNextMonth() {{
+            const now = new Date();
+            const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            next.setHours(0, 0, 0, 0);
+            return next.getTime();
+        }}
+        const monthEnd = getFirstOfNextMonth();
+        function updateTimer() {{
             const now = new Date().getTime();
             const diff = monthEnd - now;
-            if (diff <= 0) {
-                document.getElementById("month-timer").innerHTML = "Время истекло!";
+            if (diff <= 0) {{
+                document.getElementById("month-timer").innerHTML = "Месяц завершён!";
                 return;
-            }
+            }}
             const days = Math.floor(diff / (1000*60*60*24));
-            const hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
-            const minutes = Math.floor((diff % (1000*60*60)) / (1000*60));
-            const seconds = Math.floor((diff % (1000*60)) / 1000);
             document.getElementById("month-timer").innerHTML =
-                "Осталось до конца месяца: <b>" + days + " дн. " +
-                String(hours).padStart(2,'0') + ":" +
-                String(minutes).padStart(2,'0') + ":" +
-                String(seconds).padStart(2,'0') + "</b>";
-        }
-        updateMonthTimer();
-        setInterval(updateMonthTimer, 1000);
+                "Осталось до конца месяца: <b>" + days + " дн. "
+        }}
+        updateTimer();
+        setInterval(updateTimer, 1000);
         </script>
         """,
         height=35,
@@ -45,6 +48,22 @@ def render_month_tab():
 
     for goal in filtered_goals:
         pinned = goal.get("is_pinned", False)
+        if pinned:
+            if theme == "dark":
+                pin_bg = "#660099"
+                pin_color = "#FFFFFF"
+            elif theme == "forest":
+                pin_bg = "#4A7C59"
+                pin_color = "#FFFFFF"
+            elif theme == "ocean":
+                pin_bg = "#ADD8E6"   # light blue – хорошо виден на light cyan
+                pin_color = "#000000"
+            elif theme == "sunset":
+                pin_bg = "#FF00FF"   # оранжевый, гармонирует с панелью
+                pin_color = "#000000"
+            else:
+                pin_bg = "#FFB300"
+                pin_color = "#000000"
         with st.container():
             col1, col2, col3 = st.columns([0.5, 4.5, 2])
             with col1:
@@ -56,7 +75,7 @@ def render_month_tab():
             with col2:
                 if pinned:
                     st.markdown(
-                        f"<span style='background-color: #e0e0e0; padding: 2px 8px; border-radius: 4px;'><b>{goal['name']}</b></span>",
+                        f"<span style='background-color: {pin_bg}; color: {pin_color}; padding: 0px 4px; border-radius: 3px;'><b>{goal['name']}</b></span>",
                         unsafe_allow_html=True
                     )
                 else:
