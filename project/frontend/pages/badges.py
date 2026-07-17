@@ -4,6 +4,7 @@ from api_client import api_request
 def render_badges_tab():
     st.subheader("Награды")
 
+    # --- Счётчики выполненных целей по периодам ---
     if st.session_state.token:
         counters = api_request("GET", "/badges/me/counters")
         if counters:
@@ -14,19 +15,30 @@ def render_badges_tab():
             col4.metric("Год", counters.get("year_count", 0))
         else:
             st.info("Войдите, чтобы увидеть счётчики")
+    else:
+        st.info("Войдите, чтобы увидеть счётчики")
 
+    st.write("---")
+
+    # --- Все награды (сетка) ---
     all_badges = api_request("GET", "/badges/") or []
     earned_badges = []
     if st.session_state.token:
         earned_badges = api_request("GET", "/badges/me/earned") or []
     earned_ids = [b["badge_id"] for b in earned_badges]
 
-    st.write("---")
+    if not all_badges:
+        st.info("Награды ещё не загружены. Перезапустите бэкенд для их создания.")
+        return
+
+    # Сортируем по порядку (как в seed)
+    # Можно оставить как есть, они и так приходят в порядке создания.
     cols = st.columns(3)
     for i, badge in enumerate(all_badges):
         col = cols[i % 3]
         with col:
-            opacity = "1.0" if badge["id"] in earned_ids else "0.3"
+            earned = badge["id"] in earned_ids
+            opacity = "1.0" if earned else "0.3"
             st.markdown(
                 f"<div style='opacity:{opacity}; text-align:center;'>",
                 unsafe_allow_html=True,
@@ -34,9 +46,10 @@ def render_badges_tab():
             if badge.get("image_url"):
                 st.image(badge["image_url"], width=80)
             else:
+                # Заглушка, если нет картинки
                 st.image("https://via.placeholder.com/80?text=🏅", width=80)
             st.caption(f"**{badge['name']}**")
             st.caption(badge["description"])
-            if badge["id"] in earned_ids:
+            if earned:
                 st.success("Получена!")
             st.markdown("</div>", unsafe_allow_html=True)

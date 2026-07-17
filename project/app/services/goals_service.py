@@ -27,8 +27,7 @@ class GoalService:
             period=schema.period,
             is_pinned=schema.is_pinned,
             created_at=date.today(),
-            is_completed=False,
-            parent_goal_id=schema.parent_goal_id,
+            is_completed=False
         )
         return self.repository.create(goal)
 

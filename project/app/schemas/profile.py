@@ -1,6 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
+from datetime import datetime
 
 class ProfileResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -10,7 +11,8 @@ class ProfileResponse(BaseModel):
     name: str | None
     avatar_url: str | None
     theme: str
-    role: str   # роль как строка
+    role: str
+    created_at: datetime 
 
 class ProfileUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=100)

@@ -3,9 +3,39 @@ from api_client import api_request
 
 def render_day_tab():
     st.subheader("Цели на день")
+    # Живой таймер до 00:00 (JavaScript)
+    st.components.v1.html(
+        """
+        <div id="day-timer" style="font-size:16px; margin-bottom:12px;"></div>
+        <script>
+        function updateDayTimer() {
+            const now = new Date();
+            const midnight = new Date(now);
+            midnight.setHours(24, 0, 0, 0);
+            const diff = midnight - now;
+            if (diff <= 0) {
+                document.getElementById("day-timer").innerHTML = "Время истекло!";
+                return;
+            }
+            const hours = Math.floor(diff / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            document.getElementById("day-timer").innerHTML =
+                "Осталось до конца дня: <b>" +
+                String(hours).padStart(2,'0') + ":" +
+                String(minutes).padStart(2,'0') + ":" +
+                String(seconds).padStart(2,'0') + "</b>";
+        }
+        updateDayTimer();
+        setInterval(updateDayTimer, 1000);
+        </script>
+        """,
+        height=35,
+    )
+
     goals = api_request("GET", "/goals/period/day") or []
 
-    # Сортировка: закреплённые сверху
+    # закреплённые выше
     goals.sort(key=lambda g: not g.get("is_pinned", False))
 
     filter_option = st.radio("Показать:", ["Все", "Активные", "Завершённые"], horizontal=True, key="day_filter")
@@ -17,28 +47,32 @@ def render_day_tab():
 
     for goal in filtered_goals:
         pinned = goal.get("is_pinned", False)
-        card_style = "background-color: #f0f0f0; border-radius: 8px; padding: 0.5rem; margin-bottom: 0.5rem;" if pinned else ""
         with st.container():
-            if pinned:
-                st.markdown(f"<div style='{card_style}'>", unsafe_allow_html=True)
-            col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
+            col1, col2, col3 = st.columns([0.5, 4.5, 2])
             with col1:
-                status = "✅" if goal.get("is_completed") else "⬜"
-                st.write(f"{status} **{goal['name']}**")
-            with col2:
-                if st.button("🔁", key=f"toggle_{goal['id']}_day"):
+                completed = goal.get("is_completed", False)
+                new_completed = st.checkbox("", value=completed, key=f"completed_{goal['id']}_day", label_visibility="collapsed")
+                if new_completed != completed:
                     api_request("PATCH", f"/goals/{goal['id']}/toggle-completed")
                     st.rerun()
+            with col2:
+                if pinned:
+                    st.markdown(
+                        f"<span style='background-color: #e0e0e0; padding: 2px 8px; border-radius: 4px;'><b>{goal['name']}</b></span>",
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.write(f"**{goal['name']}**")
             with col3:
-                if st.button("📌", key=f"pin_{goal['id']}_day"):
-                    api_request("PATCH", f"/goals/{goal['id']}/toggle-pinned")
-                    st.rerun()
-            with col4:
-                if st.button("🗑️", key=f"del_{goal['id']}_day"):
-                    api_request("DELETE", f"/goals/{goal['id']}")
-                    st.rerun()
-            if pinned:
-                st.markdown("</div>", unsafe_allow_html=True)
+                c1, c2 = st.columns(2)
+                with c1:
+                    if st.button("📌", key=f"pin_{goal['id']}_day"):
+                        api_request("PATCH", f"/goals/{goal['id']}/toggle-pinned")
+                        st.rerun()
+                with c2:
+                    if st.button("🗑️", key=f"del_{goal['id']}_day"):
+                        api_request("DELETE", f"/goals/{goal['id']}")
+                        st.rerun()
 
     completed = [g for g in goals if g.get("is_completed")]
     if completed:

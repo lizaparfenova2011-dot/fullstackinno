@@ -47,17 +47,13 @@ def seed_badges():
     try:
         if db.query(Badge).count() == 0:
             predefined = [
-                # День
                 {"name": "Деревянная монетка", "description": "Начинающий пользователь", "condition_type": "period_count", "condition_params": {"period": "day", "count": 15}},
-                # Неделя
                 {"name": "Алюминиевая монетка", "description": "Труженник", "condition_type": "period_count", "condition_params": {"period": "week", "count": 5}},
                 {"name": "Бронзовая", "description": "Упорный", "condition_type": "period_count", "condition_params": {"period": "week", "count": 15}},
-                # Месяц
                 {"name": "Аметистовая", "description": "Труд его боялся", "condition_type": "period_count", "condition_params": {"period": "month", "count": 10}},
                 {"name": "Серебрянная", "description": "Суперумница", "condition_type": "period_count", "condition_params": {"period": "month", "count": 15}},
                 {"name": "Изумрудная", "description": "Целеустремлённый", "condition_type": "period_count", "condition_params": {"period": "month", "count": 30}},
                 {"name": "Сапфировая", "description": "Молодчина", "condition_type": "period_count", "condition_params": {"period": "month", "count": 50}},
-                # Год
                 {"name": "Розовый кварц", "description": "Трудоголик", "condition_type": "period_count", "condition_params": {"period": "year", "count": 5}},
                 {"name": "Рубиновая", "description": "Трудолюбивчик", "condition_type": "period_count", "condition_params": {"period": "year", "count": 25}},
                 {"name": "Золотая", "description": "Работяга", "condition_type": "period_count", "condition_params": {"period": "year", "count": 50}},

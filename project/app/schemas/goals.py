@@ -6,8 +6,7 @@ class GoalCreate(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     period: str = Field(min_length=1, max_length=20)
     is_pinned: bool = False
-    parent_goal_id: Optional[int] = None
-
+    
 class GoalUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=200)
     period: Optional[str] = Field(default=None, min_length=1, max_length=20)

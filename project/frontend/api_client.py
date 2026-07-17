@@ -22,13 +22,13 @@ def api_request(method, endpoint, **kwargs):
             st.session_state.token = None
             st.session_state.user = None
             st.rerun()
-        r.raise_for_status()
+        if not r.is_success:
+            detail = r.json().get("detail", r.text) if r.content else "Ошибка"
+            st.error(f"Ошибка ({r.status_code}): {detail}")
+            return None
         return r.json() if r.content else {}
     except httpx.ConnectError:
-        st.error("🚫 Не удалось подключиться к серверу. Убедитесь, что бэкенд запущен на http://127.0.0.1:8000")
-        return None
-    except httpx.HTTPStatusError as e:
-        st.error(f"Ошибка API: {e.response.text}")
+        st.error("🚫 Не удалось подключиться к серверу. Запустите бэкенд на http://127.0.0.1:8000")
         return None
     except Exception as e:
         st.error(f"Ошибка: {e}")
